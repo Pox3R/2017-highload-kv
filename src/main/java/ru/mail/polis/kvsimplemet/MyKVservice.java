@@ -15,8 +15,6 @@ public class MyKVservice implements KVService {
     @NotNull
     private final HttpServer myServer;
 
-    private final InetSocketAddress isa;
-    private final int delay = 0;
     private int operationId = 0;
 
     public static String getID(@NotNull final String query){
@@ -32,7 +30,7 @@ public class MyKVservice implements KVService {
         return id;
     }
     public MyKVservice(@NotNull final MyDao dao, int port) throws IOException{
-        this.isa = new InetSocketAddress(port);
+        InetSocketAddress isa = new InetSocketAddress(port);
         this.myServer =
                 HttpServer.create(isa,0);
 
@@ -85,16 +83,6 @@ public class MyKVservice implements KVService {
                         http.close();
 
                 }));
-
-        this.myServer.createContext(
-                "/v0/status",
-                http -> {
-                    final String res = "ONLINE";
-                    final int time = 200;
-                    http.sendResponseHeaders(time, res.length());
-                    http.getResponseBody().write(res.getBytes());
-                    http.close();
-                });
     }
 
     @Override
@@ -104,6 +92,7 @@ public class MyKVservice implements KVService {
 
     @Override
     public void stop() {
+        int delay = 0;
         this.myServer.stop(delay);
     }
 
