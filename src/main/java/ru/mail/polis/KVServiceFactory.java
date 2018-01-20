@@ -1,6 +1,8 @@
 package ru.mail.polis;
 
 import org.jetbrains.annotations.NotNull;
+import ru.mail.polis.kvsimplemet.MyKVservice;
+import ru.mail.polis.kvsimplemet.MyLatchDao;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,7 +49,7 @@ final class KVServiceFactory {
             throw new IllegalArgumentException("Path is not a directory: " + data);
         }
 
-        // TODO: Implement me
-        throw new UnsupportedOperationException("Implement me!");
+
+        return new MyKVservice(new MyLatchDao(data), port);
     }
 }
