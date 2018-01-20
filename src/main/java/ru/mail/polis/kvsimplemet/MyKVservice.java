@@ -6,7 +6,9 @@ import com.sun.net.httpserver.HttpServer;
 import org.jetbrains.annotations.NotNull;
 import ru.mail.polis.KVService;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.util.NoSuchElementException;
 
@@ -65,11 +67,14 @@ public class MyKVservice implements KVService {
                                 case "PUT":
                                     operationId = 201;
 
-                                    final int contentLength = Integer.valueOf(http.getRequestHeaders().getFirst("Content-Length"));
-                                    final byte[] putValue = new byte[contentLength];
-                                    if (http.getRequestBody().read(putValue) != putValue.length) {
-                                        throw new IOException("Can't read file");
+                                    ByteArrayOutputStream outstream = new ByteArrayOutputStream();
+                                    InputStream instream = http.getRequestBody();
+                                    byte[] buf = new byte[8192];
+                                    int lgth;
+                                    while ((lgth = instream.read(buf)) > 0) {
+                                        outstream.write(buf, 0, lgth);
                                     }
+                                    final byte[] putValue = outstream.toByteArray();
 
                                     dao.upsert(id, putValue);
                                     http.sendResponseHeaders(operationId, putValue.length);
