@@ -2,15 +2,21 @@ package ru.mail.polis.kvsimplemet;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 import java.io.*;
 import java.util.NoSuchElementException;
 
 public class MyLatchDao implements MyDao {
     @NotNull
     private final File dir;
+    private final Map<String, byte[]> myCache;
 
     public MyLatchDao(@NotNull final File dir) {
         this.dir = dir;
+        myCache = new HashMap<>(15000);
     }
 
     @NotNull
@@ -21,18 +27,19 @@ public class MyLatchDao implements MyDao {
     @NotNull
     @Override
     public byte[] get(@NotNull final String key) throws NoSuchElementException, IllegalArgumentException, IOException {
-        final File file = getFile(key);
+        if (myCache.containsKey(key)) {
+            return myCache.get(key);
+        }
+        final File file = new File(dir, key);
         if (!file.exists()) {
-            throw new NoSuchElementException();
+            myCache.put(key, null);
+            throw new NoSuchElementException("Where is file?");
         }
 
-        final byte[] value = new byte[(int) file.length()];
-        try (InputStream is = new FileInputStream(file)) {
-            if (is.read(value) != value.length) {
-                throw new IOException("Can't read file");
-            }
-        }
-        return value;
+        byte[] value = Files.readAllBytes(Paths.get(dir + File.separator + key));
+        myCache.put(key, value);
+
+        return myCache.get(key);
     }
 
     @Override
@@ -42,11 +49,13 @@ public class MyLatchDao implements MyDao {
         try (OutputStream os = new FileOutputStream(getFile(key))) {
             os.write(value);
         }
+        myCache.remove(key);
     }
 
     @Override
     public void delete(@NotNull final String key) throws IllegalArgumentException, IOException {
         //noinspection ResultOfMethodCallIgnored
         getFile(key).delete();
+        myCache.remove(key);
     }
 }

@@ -4,6 +4,8 @@
 # But not Java files...
 !.gitignore
 !*.java
+!*.md
+!*.lua
 
 # And CI
 !.travis.yml
