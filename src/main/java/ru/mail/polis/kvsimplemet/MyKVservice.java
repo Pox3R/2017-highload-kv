@@ -18,7 +18,6 @@ public class MyKVservice implements KVService {
     private final HttpServer myServer;
 
 
-
     public static String getID(@NotNull final String query) {
         if (!query.startsWith(PREF)) {
             throw new IllegalArgumentException("Bad ID");
@@ -94,9 +93,6 @@ public class MyKVservice implements KVService {
 
     @Override
     public void start() {
-        if (myServer==null) {
-            this.myServer.start();
-        }
         this.myServer.start();
     }
 
