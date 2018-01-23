@@ -32,7 +32,6 @@ public class MyLatchDao implements MyDao {
         }
         final File file = new File(dir, key);
         if (!file.exists()) {
-            myCache.put(key, null);
             throw new NoSuchElementException("Where is file?");
         }
 

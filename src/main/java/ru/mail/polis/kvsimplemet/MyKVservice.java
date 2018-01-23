@@ -17,7 +17,7 @@ public class MyKVservice implements KVService {
     @NotNull
     private final HttpServer myServer;
 
-    private int operationId = 0;
+
 
     public static String getID(@NotNull final String query) {
         if (!query.startsWith(PREF)) {
@@ -33,6 +33,7 @@ public class MyKVservice implements KVService {
     }
 
     public MyKVservice(@NotNull final MyDao dao, int port) throws IOException {
+        final int[] operationId = new int[1];
         InetSocketAddress isa = new InetSocketAddress(port);
         this.myServer =
                 HttpServer.create(isa, 0);
@@ -40,9 +41,9 @@ public class MyKVservice implements KVService {
         this.myServer.createContext(
                 "/v0/status",
                 http -> {
-                    operationId = 200;
+                    operationId[0] = 200;
                     final String res = "ONLINE";
-                    http.sendResponseHeaders(operationId, res.length());
+                    http.sendResponseHeaders(operationId[0], res.length());
                     http.getResponseBody().write(res.getBytes());
                     http.close();
                 });
@@ -54,18 +55,18 @@ public class MyKVservice implements KVService {
                             final String id = getID(http.getRequestURI().getQuery());
                             switch (http.getRequestMethod()) {
                                 case "GET":
-                                    operationId = 200;
+                                    operationId[0] = 200;
                                     final byte[] getValue = dao.get(id);
-                                    http.sendResponseHeaders(operationId, getValue.length);
+                                    http.sendResponseHeaders(operationId[0], getValue.length);
                                     http.getResponseBody().write(getValue);
                                     break;
                                 case "DELETE":
-                                    operationId = 202;
+                                    operationId[0] = 202;
                                     dao.delete(id);
-                                    http.sendResponseHeaders(operationId, 0);
+                                    http.sendResponseHeaders(operationId[0], 0);
                                     break;
                                 case "PUT":
-                                    operationId = 201;
+                                    operationId[0] = 201;
 
                                     ByteArrayOutputStream outstream = new ByteArrayOutputStream();
                                     InputStream instream = http.getRequestBody();
@@ -77,12 +78,12 @@ public class MyKVservice implements KVService {
                                     final byte[] putValue = outstream.toByteArray();
 
                                     dao.upsert(id, putValue);
-                                    http.sendResponseHeaders(operationId, putValue.length);
+                                    http.sendResponseHeaders(operationId[0], putValue.length);
                                     http.getResponseBody().write(putValue);
                                     break;
                                 default:
-                                    operationId = 405;
-                                    http.sendResponseHeaders(operationId, 0);
+                                    operationId[0] = 405;
+                                    http.sendResponseHeaders(operationId[0], 0);
                                     break;
                             }
 
@@ -93,6 +94,9 @@ public class MyKVservice implements KVService {
 
     @Override
     public void start() {
+        if (myServer==null) {
+            this.myServer.start();
+        }
         this.myServer.start();
     }
 
